@@ -1,7 +1,8 @@
 import React from "react";
 import styles from "./hero.module.scss";
 import { Formik, Field, Form } from "formik";
-
+import axios from "axios";
+import toast from "react-hot-toast";
 export const Hero = () => {
   return (
     <div className={styles.hero}>
@@ -18,6 +19,12 @@ export const Hero = () => {
 
           if (!values.name) {
             errors.name = "Required";
+          } else if (
+            /^(?:Dr\.?\s)?[A-Z][a-z]+\s[A-Z][a-z]+(?:\s[A-Z][a-z]+)*$/.test(
+              values.name
+            )
+          ) {
+            errors.email = "pls enter a valid fullname";
           }
 
           if (!values.email) {
@@ -30,8 +37,13 @@ export const Hero = () => {
 
           if (!values.password) {
             errors.password = "Required";
-          } else if (values.password.length < 6) {
-            errors.password = "Password must be at least 6 characters long";
+          } else if (
+            !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/.test(
+              values.password
+            )
+          ) {
+            errors.password =
+              "password must be at least of 8 characters and include an uppercase letter, lowercase letter, number, and special character";
           }
 
           if (!values.picked) {
@@ -44,10 +56,29 @@ export const Hero = () => {
 
           return errors;
         }}
-        onSubmit={(values, { setSubmitting }) => {
-          setTimeout(() => {
-            alert(JSON.stringify(values, null, 2));
-            setSubmitting(false);
+        onSubmit={(values, { setSubmitting, resetForm }) => {
+          setTimeout(async () => {
+            try {
+              const response = await axios.post(
+                "http://localhost:8000/user/registration",
+                {
+                  name: values.name,
+                  email: values.email,
+                  password: values.password,
+                  role: values.picked.toLowerCase(),
+                  specialization:
+                    values.picked === "Doctor" ? values.specialization : null,
+                }
+              );
+              toast.success(response.data);
+              console.log(response);
+            } catch (error) {
+              console.error(error);
+              toast.error(error);
+            } finally {
+              resetForm();
+              setSubmitting(false);
+            }
           }, 400);
         }}
       >
@@ -96,11 +127,21 @@ export const Hero = () => {
               <p>Role:</p>
               <div role="group" aria-labelledby="my-radio-group">
                 <label>
-                  <Field type="radio" name="picked" value="Doctor" />
+                  <Field
+                    type="radio"
+                    name="picked"
+                    value="Doctor"
+                    className={styles.radio}
+                  />
                   Doctor
                 </label>
                 <label>
-                  <Field type="radio" name="picked" value="Patient" />
+                  <Field
+                    type="radio"
+                    name="picked"
+                    value="Patient"
+                    className={styles.radio}
+                  />
                   Patient
                 </label>
               </div>
@@ -141,7 +182,7 @@ export const Hero = () => {
               <input
                 type="password"
                 name="password"
-                placeholder="password"
+                placeholder="Password"
                 onChange={handleChange}
                 onBlur={handleBlur}
                 value={values.password}
