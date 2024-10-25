@@ -1,9 +1,14 @@
 import React from "react";
-import styles from "./hero.module.scss";
 import { Formik, Field, Form } from "formik";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
 import axios from "axios";
 import toast from "react-hot-toast";
+import styles from "./hero.module.scss";
+import { Verification } from "./Verification";
+
 export const Hero = () => {
+  const navigate = useNavigate(); // Initialize navigate
+
   return (
     <div className={styles.hero}>
       <Formik
@@ -13,6 +18,7 @@ export const Hero = () => {
           password: "",
           picked: "",
           specialization: "",
+          verificationMethod: "",
         }}
         validate={(values) => {
           const errors = {};
@@ -20,11 +26,11 @@ export const Hero = () => {
           if (!values.name) {
             errors.name = "Required";
           } else if (
-            /^(?:Dr\.?\s)?[A-Z][a-z]+\s[A-Z][a-z]+(?:\s[A-Z][a-z]+)*$/.test(
+            !/^(?:Dr\.?\s)?[A-Z][a-z]+\s[A-Z][a-z]+(?:\s[A-Z][a-z]+)*$/.test(
               values.name
             )
           ) {
-            errors.email = "pls enter a valid fullname";
+            errors.name = "Please enter a valid full name";
           }
 
           if (!values.email) {
@@ -43,7 +49,7 @@ export const Hero = () => {
             )
           ) {
             errors.password =
-              "password must be at least of 8 characters and include an uppercase letter, lowercase letter, number, and special character";
+              "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
           }
 
           if (!values.picked) {
@@ -54,32 +60,39 @@ export const Hero = () => {
             errors.specialization = "Please select a specialization";
           }
 
+          if (!values.verificationMethod) {
+            errors.verificationMethod = "Please select a verification method";
+          }
+
           return errors;
         }}
-        onSubmit={(values, { setSubmitting, resetForm }) => {
-          setTimeout(async () => {
-            try {
-              const response = await axios.post(
-                "http://localhost:8000/user/registration",
-                {
-                  name: values.name,
-                  email: values.email,
-                  password: values.password,
-                  role: values.picked.toLowerCase(),
-                  specialization:
-                    values.picked === "Doctor" ? values.specialization : null,
-                }
-              );
-              toast.success(response.data);
-              console.log(response);
-            } catch (error) {
-              console.error(error);
-              toast.error(error);
-            } finally {
-              resetForm();
-              setSubmitting(false);
+        onSubmit={async (values, { setSubmitting, resetForm }) => {
+          try {
+            const response = await axios.post(
+              "http://localhost:8000/user/registration",
+              {
+                name: values.name,
+                email: values.email,
+                password: values.password,
+                role: values.picked.toLowerCase(),
+                specialization:
+                  values.picked === "Doctor" ? values.specialization : null,
+                verificationMethod: values.verificationMethod,
+              }
+            );
+
+            if (values.verificationMethod === "otp") {
+              navigate("/otp");
+            } else {
+              toast.success("Verification link sent to your email.");
             }
-          }, 400);
+          } catch (error) {
+            console.error(error);
+            toast.error("Registration failed. Please try again.");
+          } finally {
+            resetForm();
+            setSubmitting(false);
+          }
         }}
       >
         {({
@@ -93,6 +106,8 @@ export const Hero = () => {
         }) => (
           <Form onSubmit={handleSubmit}>
             <h2>New here!</h2>
+
+            {/* Name Input */}
             <div className={styles.input}>
               <label htmlFor="name">Name:</label>
               <input
@@ -108,6 +123,7 @@ export const Hero = () => {
               )}
             </div>
 
+            {/* Email Input */}
             <div className={styles.input}>
               <label htmlFor="email">Email:</label>
               <input
@@ -123,6 +139,7 @@ export const Hero = () => {
               )}
             </div>
 
+            {/* Role Selection */}
             <div className={styles.input}>
               <p>Role:</p>
               <div role="group" aria-labelledby="my-radio-group">
@@ -150,6 +167,7 @@ export const Hero = () => {
               )}
             </div>
 
+            {/* Specialization (Only for Doctor) */}
             {values.picked === "Doctor" && (
               <div className={styles.input}>
                 <label htmlFor="specialization">Specialization:</label>
@@ -177,6 +195,7 @@ export const Hero = () => {
               </div>
             )}
 
+            {/* Password Input */}
             <div className={styles.input}>
               <label htmlFor="password">Password:</label>
               <input
@@ -191,7 +210,34 @@ export const Hero = () => {
                 <div className={styles.error}>{errors.password}</div>
               )}
             </div>
+            <div className={styles.input}>
+              <p>Verification Method:</p>
+              <div role="group" aria-labelledby="verification-method-group">
+                <label>
+                  <Field
+                    type="radio"
+                    name="verificationMethod"
+                    value="link"
+                    className={styles.radio}
+                  />
+                  Verify using link
+                </label>
+                <label>
+                  <Field
+                    type="radio"
+                    name="verificationMethod"
+                    value="otp"
+                    className={styles.radio}
+                  />
+                  Verify using OTP
+                </label>
+              </div>
+              {errors.verificationMethod && touched.verificationMethod && (
+                <div className={styles.error}>{errors.verificationMethod}</div>
+              )}
+            </div>
 
+            {/* Submit Button */}
             <button type="submit" disabled={isSubmitting}>
               Submit
             </button>
