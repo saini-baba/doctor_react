@@ -1,13 +1,13 @@
 import React from "react";
 import { Formik, Field, Form } from "formik";
-import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
+import { useNavigate } from "react-router-dom"; 
 import axios from "axios";
 import toast from "react-hot-toast";
 import styles from "./hero.module.scss";
-import { Verification } from "./Verification";
+
 
 export const Hero = () => {
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate(); 
 
   return (
     <div className={styles.hero}>
@@ -77,14 +77,39 @@ export const Hero = () => {
                 role: values.picked.toLowerCase(),
                 specialization:
                   values.picked === "Doctor" ? values.specialization : null,
-                verificationMethod: values.verificationMethod,
+                // verificationMethod: values.verificationMethod,
               }
             );
 
             if (values.verificationMethod === "otp") {
-              navigate("/otp");
+              try {
+                await axios.post(
+                  `http://localhost:8000/user/${response.data.user_id}/verifyOpt`
+                );
+                toast.success("OTP sent to your email.");
+                setTimeout(() => {
+                  navigate("/otp", {
+                    state: { user_id: response.data.user_id },
+                  });
+                }, 3000);
+              } catch (error) {
+                console.error("Error sending OTP:", error);
+                toast.error("Failed to send OTP. Please try again.");
+              }
             } else {
-              toast.success("Verification link sent to your email.");
+              try {
+                await axios.post(
+                  `http://localhost:8000/user/${response.data.user_id}/verify`
+                );
+                toast.success(
+                  "Registration successful and verification link sent to your email."
+                );
+              } catch (emailError) {
+                console.error("Error sending verification email:", emailError);
+                toast.error(
+                  "Registration successful, but failed to send verification email. Please try again."
+                );
+              }
             }
           } catch (error) {
             console.error(error);

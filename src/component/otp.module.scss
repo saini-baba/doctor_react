@@ -1,0 +1,39 @@
+.form {
+  height: 88vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    background-color: #35923d;
+    padding: 3em;
+    border-radius: 1em;
+    h2 {
+      text-align: center;
+      font-size: 2rem;
+    }
+    form {
+      display: grid;
+      gap: 0.8em;
+      > div {
+        input {
+          font-size: 1.5rem;
+          border: none;
+          border-radius: 0.3em;
+          padding-inline: 0.5em;
+          padding-block: 0.3em;
+        }
+      }
+    }
+    button {
+      font-size: 1.2rem;
+      cursor: pointer;
+      background-color: white;
+      border: none;
+      border-radius: 0.3em;
+      padding-block: 0.3em;
+    }
+  }
+}

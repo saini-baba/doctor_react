@@ -1,7 +1,7 @@
 import { React, useState } from "react";
 import styles from "./login.module.scss";
 import Modal from "react-modal";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { Formik, Field, Form } from "formik";
 import toast, { Toaster } from "react-hot-toast";
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
@@ -13,9 +13,9 @@ Modal.setAppElement("#root");
 export const Login = (props) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const navigate = useNavigate();
+
   return (
     <div className={styles.main}>
-      
       <button
         onClick={() => {
           setModalIsOpen(true);
@@ -49,43 +49,61 @@ export const Login = (props) => {
               errors.email = "Invalid email address";
             }
             if (!values.password) {
-              errors.password = "Required";
+              errors.password = "Password is required";
             } else if (
               !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/.test(
                 values.password
               )
             ) {
               errors.password =
-                "Password must be at least 8 characters and include an uppercase letter, lowercase letter, number, and special character";
+                "Password must include uppercase, lowercase, number, and special character";
             }
-
             return errors;
           }}
           onSubmit={(values, { setSubmitting, resetForm }) => {
             axios
-              .get(
-                `http://localhost:8000/user/login/${values.email}/${values.password}`
-              )
-              .then(function (response) {
-                // toast.success("Login successful");
-                console.log(response);
+              .post(`http://localhost:8000/user/login`, {
+                email: values.email,
+                password: values.password,
+              })
+              .then(async (response) => {
                 setModalIsOpen(false);
                 const { token, role } = response.data;
                 if (token) {
                   localStorage.setItem("token", token);
-                  if (role === "doctor") {
-                    navigate("/doctor");
-                  } else if (role === "patient") {
-                    navigate("/patient");
-                  }
+                  navigate(role === "doctor" ? "/doctor" : "/patient");
                 }
               })
-              .catch((error) => {
-                if (error instanceof AxiosError) {
+              .catch(async (error) => {
+                if (error.response.status === 403) {
+                  setModalIsOpen(false);
+                  toast.error("Your account is not verified.");
+                  try {
+                    await axios.post(
+                      `http://localhost:8000/user/${error.response.data.user_id}/verify`
+                    );
+                    toast.success(
+                      "Verification link sent to your email. Please check your inbox.",
+                      {
+                        duration: 5000,
+                      }
+                    );
+                  } catch (emailError) {
+                    console.error(
+                      "Error sending verification email:",
+                      emailError
+                    );
+                    toast.error(
+                      "Verification link could not be sent. Please try again later."
+                    );
+                  }
+                } else {
                   if (error.response && error.response.status === 404) {
                     toast.error("Invalid credentials");
                   } else {
-                    toast.error("Error during login:", error);
+                    toast.error(
+                      "An error occurred during login. Please try again."
+                    );
                   }
                 }
               })

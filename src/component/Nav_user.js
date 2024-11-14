@@ -1,11 +1,22 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
 import styles from "./nav_user.module.scss";
+
 export const Nav_user = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate(); // Initialize navigate function
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
+
+  const handleLogout = () => {
+    // Remove the token from localStorage
+    localStorage.removeItem("token");
+    // Navigate to the home page
+    navigate("/");
+  };
+
   return (
     <nav className={` ${styles.navbar}`}>
       <div className={styles.navbar_logo}>
@@ -21,7 +32,7 @@ export const Nav_user = () => {
       </div>
       <ul className={`${styles.nav_links} ${isOpen ? styles.open : ""}`}>
         <li>
-          <button>Logout</button>
+          <button onClick={handleLogout}>Logout</button>
         </li>
       </ul>
     </nav>

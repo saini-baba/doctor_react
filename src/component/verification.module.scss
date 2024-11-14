@@ -1,0 +1,17 @@
+.verification {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+//   outline: 2px solid red;
+  p {
+    font-weight: 600;
+    font-size: 2rem;
+  }
+  img {
+    width: 12em;
+    aspect-ratio: 1;
+  }
+}
