@@ -13,12 +13,16 @@ import "lightgallery/css/lg-zoom.css";
 export const Doctor = () => {
   const [data, setData] = useState(null);
   const [status, setStatus] = useState("Accepted");
-  const [filterDate, setFilterDate] = useState("");
+  const [filterDate, setFilterDate] = useState(
+    new Date(new Date().setDate(new Date().getDate() + 1))
+      .toISOString()
+      .split("T")[0]
+  );
   const [slot, setSlot] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState("");
   const [edit, setEdit] = useState({});
   const [currentDiseaseId, setCurrentDiseaseId] = useState(null);
-
+  const [toggle, setToggle] = useState(true);
   const token = localStorage.getItem("token");
   const galleryRefs = useRef({});
 
@@ -40,11 +44,11 @@ export const Doctor = () => {
       });
   };
 
-  const updateDateAndFetchData = async () => {
+  const updateDateAndFetchData = () => {
     const currentDate = new Date();
     let minDate, maxDate;
 
-    if (status === "Accepted") {
+    if (status === "Accepted" || status === "Pending") {
       minDate = new Date(currentDate.setDate(currentDate.getDate() + 1));
       maxDate = new Date(currentDate.setDate(currentDate.getDate() + 5));
       setFilterDate(minDate.toISOString().split("T")[0]);
@@ -52,12 +56,20 @@ export const Doctor = () => {
       minDate = new Date();
       maxDate = new Date(currentDate.setDate(currentDate.getDate() + 5));
       setFilterDate(minDate.toISOString().split("T")[0]);
+      // setToggle((prevToggle) => !prevToggle);
     } else if (status === "Completed") {
       minDate = null;
       maxDate = new Date();
       setFilterDate(maxDate.toISOString().split("T")[0]);
+      // setToggle((prevToggle) => !prevToggle);
+    } else if (status === "Cancelled") {
+      const today = new Date();
+      minDate = null;
+      maxDate = new Date(currentDate.setDate(currentDate.getDate() + 5));
+      setFilterDate(today.toISOString().split("T")[0]);
+      // setToggle((prevToggle) => !prevToggle);
     }
-
+    setToggle((prevToggle) => !prevToggle);
     const dateInput = document.getElementById("filterDate");
     if (dateInput) {
       dateInput.min = minDate ? minDate.toISOString().split("T")[0] : "";
@@ -76,7 +88,7 @@ export const Doctor = () => {
     if (filterDate) {
       getdata();
     }
-  }, [filterDate]);
+  }, [toggle]);
 
   const getslot = () => {
     axios
@@ -98,31 +110,34 @@ export const Doctor = () => {
       });
   };
 
-  // Handle Edit button click
   const handleEditClick = (diseaseId, currentSlot) => {
     setEdit((prev) => ({
       ...prev,
-      [diseaseId]: true, // Set the selected disease to edit mode
+      [diseaseId]: true,
     }));
     setCurrentDiseaseId(diseaseId);
+    // console.log("id", currentDiseaseId);
+
     setSelectedSlot(currentSlot);
   };
 
-  // Handle Confirm booking button
   const handleConfirmBooking = () => {
-    // Confirm booking logic (e.g., update the slot for the disease)
+    // console.log(currentDiseaseId, selectedSlot);
     axios
-      .put(
-        `http://localhost:8000/doctor/disease/${currentDiseaseId}`,
-        { slot_time: selectedSlot },
+      .patch(
+        `http://localhost:8000/doctor/confirm`,
+        {
+          id: currentDiseaseId,
+          slot: selectedSlot,
+        },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       )
       .then((response) => {
         toast.success("Booking confirmed!");
-        setEdit(true); // Hide select and show Edit button again
-        getdata(); // Refresh data
+        setEdit(true);
+        getdata();
       })
       .catch((error) => {
         console.error("Error confirming booking:", error);
@@ -130,12 +145,49 @@ export const Doctor = () => {
       });
   };
 
-  // Handle Close button click
   const handleCloseClick = (diseaseId) => {
     setEdit((prev) => ({
       ...prev,
-      [diseaseId]: false, // Set the selected disease to edit mode
-    })); // Show Edit button again
+      [diseaseId]: false,
+    }));
+  };
+
+  const handleCancelClick = (diseaseId) => {
+    const reason = window.prompt("Please provide a reason for cancellation:");
+
+    if (reason) {
+      // Show confirm and close options
+      const confirmCancel = window.confirm(
+        "Do you want to cancel this appointment?"
+      );
+
+      if (confirmCancel) {
+        // Call the API to update the disease status to "Cancelled" and log the reason
+        cancelDisease(diseaseId, reason);
+      }
+    }
+  };
+
+  const cancelDisease = (diseaseId, reason) => {
+    axios
+      .patch(
+        `http://localhost:8000/doctor/cancel`,
+        {
+          id: diseaseId,
+          reason: reason,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      .then((response) => {
+        toast.success("Appointment Cancelled!");
+        getdata();
+      })
+      .catch((error) => {
+        console.error("Error canceling appointment:", error);
+        toast.error("Failed to cancel appointment");
+      });
   };
 
   return (
@@ -144,8 +196,11 @@ export const Doctor = () => {
         <p>Filter Patient:</p>
         <select value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="Accepted">Accepted</option>
+          <option value="Pending">Pending</option>
           <option value="Confirmed">Confirmed</option>
           <option value="Completed">Completed</option>
+
+          <option value="Cancelled">Cancelled</option>
         </select>
 
         <label>
@@ -181,6 +236,10 @@ export const Doctor = () => {
                 </p>
                 <div>
                   <p>Slot: {disease.slot_time}</p>
+                  {status === "Accepted" &&
+                    !slot.includes(disease.slot_time) && (
+                      <p style={{ color: "red" }}>This slot is not free</p>
+                    )}
                 </div>
 
                 {disease.description && (
@@ -231,43 +290,51 @@ export const Doctor = () => {
                   })}
                 </p>
                 <div>
-                  {edit[disease.id] ? (
+                  {status === "Accepted" && (
                     <>
-                      <select
-                        value={selectedSlot}
-                        onChange={(e) => setSelectedSlot(e.target.value)}
-                      >
-                        <option value="" disabled>
-                          Select a new slot
-                        </option>
-                        {slot.map((slotTime, index) => (
-                          <option key={index} value={slotTime}>
-                            {slotTime}
-                          </option>
-                        ))}
-                      </select>
-                      <button onClick={handleConfirmBooking}>
-                        Confirm Booking
-                      </button>
-                      <button
-                        onClick={() => {
-                          handleCloseClick(disease.id);
-                        }}
-                      >
-                        Close
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() =>
-                          handleEditClick(disease.id, disease.slot_time)
-                        }
-                      >
-                        Edit Slot
-                      </button>
-                      <button>Confirm</button>
-                      <button>Cancel</button>
+                      {edit[disease.id] ? (
+                        <>
+                          <select
+                            value={selectedSlot}
+                            onChange={(e) => setSelectedSlot(e.target.value)}
+                          >
+                            <option value="" disabled>
+                              Select a new slot
+                            </option>
+                            {slot.map((slotTime, index) => (
+                              <option key={index} value={slotTime}>
+                                {slotTime}
+                              </option>
+                            ))}
+                          </select>
+                          <button onClick={handleConfirmBooking}>
+                            Confirm Booking
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleCloseClick(disease.id);
+                            }}
+                          >
+                            Close
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() =>
+                              handleEditClick(disease.id, disease.slot_time)
+                            }
+                          >
+                            Edit Slot
+                          </button>
+                          <button onClick={handleConfirmBooking}>
+                            Confirm Booking
+                          </button>
+                          <button onClick={() => handleCancelClick(disease.id)}>
+                            Cancel
+                          </button>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
