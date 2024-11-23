@@ -1,13 +1,50 @@
 import React from "react";
 import { Formik, Field, Form } from "formik";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
 import styles from "./hero.module.scss";
 
-
 export const Hero = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const indianStates = [
+    "Andhra Pradesh",
+    "Arunachal Pradesh",
+    "Assam",
+    "Bihar",
+    "Chhattisgarh",
+    "Goa",
+    "Gujarat",
+    "Haryana",
+    "Himachal Pradesh",
+    "Jharkhand",
+    "Karnataka",
+    "Kerala",
+    "Madhya Pradesh",
+    "Maharashtra",
+    "Manipur",
+    "Meghalaya",
+    "Mizoram",
+    "Nagaland",
+    "Odisha",
+    "Punjab",
+    "Rajasthan",
+    "Sikkim",
+    "Tamil Nadu",
+    "Telangana",
+    "Tripura",
+    "Uttar Pradesh",
+    "Uttarakhand",
+    "West Bengal",
+    "Delhi",
+    "Jammu & Kashmir",
+    "Ladakh",
+    "Andaman & Nicobar Islands",
+    "Chandigarh",
+    "Dadra & Nagar Haveli and Daman & Diu",
+    "Lakshadweep",
+    "Puducherry",
+  ];
 
   return (
     <div className={styles.hero}>
@@ -17,12 +54,10 @@ export const Hero = () => {
           email: "",
           password: "",
           picked: "",
-          specialization: "",
           verificationMethod: "",
         }}
         validate={(values) => {
           const errors = {};
-
           if (!values.name) {
             errors.name = "Required";
           } else if (
@@ -40,7 +75,6 @@ export const Hero = () => {
           ) {
             errors.email = "Invalid email address";
           }
-
           if (!values.password) {
             errors.password = "Required";
           } else if (
@@ -51,15 +85,9 @@ export const Hero = () => {
             errors.password =
               "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
           }
-
           if (!values.picked) {
             errors.picked = "Please select a role";
           }
-
-          if (values.picked === "Doctor" && !values.specialization) {
-            errors.specialization = "Please select a specialization";
-          }
-
           if (!values.verificationMethod) {
             errors.verificationMethod = "Please select a verification method";
           }
@@ -68,6 +96,8 @@ export const Hero = () => {
         }}
         onSubmit={async (values, { setSubmitting, resetForm }) => {
           try {
+            console.log(values);
+
             const response = await axios.post(
               "http://localhost:8000/user/registration",
               {
@@ -75,12 +105,9 @@ export const Hero = () => {
                 email: values.email,
                 password: values.password,
                 role: values.picked.toLowerCase(),
-                specialization:
-                  values.picked === "Doctor" ? values.specialization : null,
-                // verificationMethod: values.verificationMethod,
               }
             );
-
+            console.log("Server Response:", response);
             if (values.verificationMethod === "otp") {
               try {
                 await axios.post(
@@ -163,62 +190,38 @@ export const Hero = () => {
                 <div className={styles.error}>{errors.email}</div>
               )}
             </div>
+           
 
-            {/* Role Selection */}
-            <div className={styles.input}>
-              <p>Role:</p>
-              <div role="group" aria-labelledby="my-radio-group">
-                <label>
-                  <Field
-                    type="radio"
-                    name="picked"
-                    value="Doctor"
-                    className={styles.radio}
-                  />
-                  Doctor
-                </label>
-                <label>
-                  <Field
-                    type="radio"
-                    name="picked"
-                    value="Patient"
-                    className={styles.radio}
-                  />
-                  Patient
-                </label>
-              </div>
-              {errors.picked && touched.picked && (
-                <div className={styles.error}>{errors.picked}</div>
-              )}
-            </div>
-
-            {/* Specialization (Only for Doctor) */}
-            {values.picked === "Doctor" && (
+            <div>
               <div className={styles.input}>
-                <label htmlFor="specialization">Specialization:</label>
-                <select
-                  name="specialization"
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.specialization}
-                >
-                  <option value="" label="Select specialization" />
-                  <option value="Cosmetic dermatology">
-                    Cosmetic dermatology
-                  </option>
-                  <option value="Dermatopathology">Dermatopathology</option>
-                  <option value="Mohs surgery">Mohs surgery</option>
-                  <option value="Pediatric dermatology">
-                    Pediatric dermatology
-                  </option>
-                  <option value="Immunodermatology">Immunodermatology</option>
-                  <option value="Trichology">Trichology</option>
-                </select>
-                {errors.specialization && touched.specialization && (
-                  <div className={styles.error}>{errors.specialization}</div>
+                <p>Who are you:</p>
+                <div role="group" aria-labelledby="my-radio-group">
+                  <label>
+                    <Field
+                      type="radio"
+                      name="picked"
+                      value="Doctor"
+                      className={styles.radio}
+                    />
+                    Doctor
+                  </label>
+                  <label>
+                    <Field
+                      type="radio"
+                      name="picked"
+                      value="Patient"
+                      className={styles.radio}
+                    />
+                    Patient
+                  </label>
+                </div>
+                {errors.picked && touched.picked && (
+                  <div className={styles.error}>{errors.picked}</div>
                 )}
               </div>
-            )}
+              
+            </div>
+
 
             {/* Password Input */}
             <div className={styles.input}>

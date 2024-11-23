@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import styles from "./patient.module.scss"
+import styles from "./patient.module.scss";
+import { useNavigate } from "react-router-dom";
+
 export const Patient = () => {
+  const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
   const token = localStorage.getItem("token");
-
-  // Set yesterday's date as the default selected date
   const yesterday = new Date(new Date().setDate(new Date().getDate() + 1))
     .toISOString()
     .split("T")[0];
@@ -39,21 +40,40 @@ export const Patient = () => {
   }, [selectedDate]);
 
   const handleDateChange = (e) => {
-    setSelectedDate(e.target.value);
+    const newDate = e.target.value;
+    const selectedDay = new Date(newDate).getDay(); // 0 = Sunday
+    if (selectedDay === 0) {
+      toast.error("Sunday is not selectable. Please choose another date.");
+      return; // Prevent setting Sunday as the date
+    }
+    setSelectedDate(newDate);
+  };
+
+  const handleBooking = (doctorId, doctorName) => {
+    navigate(`/patient/appointment/${doctorId}/${doctorName}/${selectedDate}`);
+  };
+
+  const checkstatus = () => {
+    navigate("/patient/status");
   };
 
   return (
     <div className={`container  ${styles.patient}`}>
       <h2>All Doctors</h2>
-      <div className={styles.date}>
-        <label>Select Date:</label>
-        <input
-          type="date"
-          value={selectedDate}
-          min={yesterday}
-          max={maxDate}
-          onChange={handleDateChange}
-        />
+      <div className={styles.filter}>
+        <div className={styles.date}>
+          <label>Select Date:</label>
+          <input
+            type="date"
+            value={selectedDate}
+            min={yesterday}
+            max={maxDate}
+            onChange={handleDateChange}
+          />
+        </div>
+        <div className={styles.status}>
+          <button onClick={checkstatus}>Check Appointment Status</button>
+        </div>
       </div>
 
       <div className={styles.doc}>
@@ -66,7 +86,9 @@ export const Patient = () => {
                 <p>Specialization: {doctor.specialization}</p>
                 <p>No. of Appointments left: {11 - doctor.confirmedCount}</p>
               </div>
-              <button>Book a Appointment</button>
+              <button onClick={() => handleBooking(doctor.id, doctor.name)}>
+                Book an Appointment
+              </button>
             </div>
           ))
         ) : (

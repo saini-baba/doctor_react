@@ -1,0 +1,131 @@
+.container {
+  max-width: 1200px;
+  margin: 2em auto;
+  padding: 20px;
+  background-color: #e7f5fc;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.statusContainer {
+  font-family: Arial, sans-serif;
+  color: #0b3d91;
+}
+
+.filterContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #92dfac;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+
+  p {
+    font-size: 18px;
+    font-weight: bold;
+    color: #075e54;
+  }
+
+  label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0b3d91;
+    margin-right: 10px;
+  }
+
+  .dropdown,
+  .dateInput {
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #075e54;
+    border: 1px solid #75c1b0;
+    border-radius: 4px;
+    background-color: #ffffff;
+    transition: all 0.3s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #0b3d91;
+      box-shadow: 0 0 5px rgba(11, 61, 145, 0.5);
+    }
+  }
+}
+
+.dataContainer {
+  .diseaseCard {
+    background-color: #ffffff;
+    border: 1px solid #75c1b0;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    .actionButtons {
+      display: flex;
+      justify-content: flex-end; // Aligns buttons to the right
+      gap: 10px; // Adds space between buttons
+      margin-top: 10px;
+
+      button {
+        padding: 8px 15px;
+        font-size: 14px;
+        font-weight: bold;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+          transform: translateY(-2px);
+        }
+      }
+
+      .confirmButton {
+        background-color: #075e54; // Green background
+        color: #ffffff; // White text
+
+        &:hover {
+          background-color: #06473e; // Darker green on hover
+        }
+      }
+
+      .cancelButton {
+        background-color: #d9534f; // Red background
+        color: #ffffff; // White text
+
+        &:hover {
+          background-color: #c9302c; // Darker red on hover
+        }
+      }
+    }
+    .pendingExplanation {
+      font-size: 16px;
+      color: #333; // Dark gray text
+      background-color: #f0f8ff; // Light blue background
+      border: 1px solid #b0e0e6; // Border to match the background
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    p {
+      font-size: 14px;
+      margin: 5px 0;
+      color: #0b3d91;
+    }
+
+    &:hover {
+      border-color: #0b3d91;
+      box-shadow: 0 4px 6px rgba(11, 61, 145, 0.2);
+    }
+  }
+}
+
+.noData {
+  font-size: 16px;
+  font-weight: bold;
+  color: #075e54;
+  text-align: center;
+  margin-top: 20px;
+}

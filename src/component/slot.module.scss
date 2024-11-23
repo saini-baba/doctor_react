@@ -1,0 +1,136 @@
+// Variables for colors
+$primary-green: #2ca748;
+$primary-blue: #2289cd;
+$light-green: #66aa71;
+$light-blue: #8cc4e4;
+$background-green: #7edf8e;
+$neutral-light: #f4f4f4;
+
+// General styles
+// body {
+//   font-family: Arial, sans-serif;
+//   color: $primary-green;
+//   background-color: $neutral-light;
+//   margin: 0;
+//   padding: 0;
+// }
+
+// Container
+.slotContainer {
+  //   outline: 2px solid red;
+  max-width: 600px;
+  margin: 2rem auto;
+  background-color: $background-green; // Ensure this variable is defined in your SCSS file.
+  padding: 2rem;
+  border-radius: 12px; // Slightly larger for a softer feel.
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.15); // Deeper shadow for emphasis.
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  // Add a hover effect to make the card interactive.
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0px 12px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  // Add a subtle border to differentiate the card.
+  border: 2px solid rgba(0, 0, 0, 0.05);
+}
+
+// Form styles
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  //   width: 80%;
+
+  label {
+    font-size: 1rem;
+    font-weight: bold;
+    color: $primary-green;
+  }
+  .ErrorMessage {
+    font-size: 0.875rem;
+    color: #ff4d4f;
+    // margin-top: 0.25rem;
+    display: flex;
+    // flex-direction: column;
+    gap: 0.5em;
+    // outline: 2px solid red;
+  }
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+      //   align-items: center;
+      > div {
+        display: flex;
+        gap: 1em;
+      }
+    }
+  }
+
+  input,
+  select {
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid $light-blue;
+    border-radius: 4px;
+    background-color: $neutral-light;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: $primary-blue;
+    }
+  }
+  input {
+    width: 97%;
+  }
+  select {
+    width: 100%;
+  }
+  button {
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: $primary-green;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: $light-green;
+    }
+
+    &:disabled {
+      background-color: $light-blue;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// Error message
+
+// Role-specific container
+.roleContainer {
+  margin-bottom: 2rem;
+  text-align: center;
+
+  h2 {
+    font-size: 1.8rem;
+    color: $primary-blue;
+    margin-bottom: 1rem;
+  }
+}
+
+// Utility styles
+.hidden {
+  display: none;
+}

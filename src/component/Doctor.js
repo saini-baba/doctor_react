@@ -88,11 +88,11 @@ export const Doctor = () => {
     if (filterDate) {
       getdata();
     }
-  }, [toggle]);
+  }, [toggle, filterDate]);
 
   const getslot = () => {
     axios
-      .get(`http://localhost:8000/doctor/slot/${filterDate}`, {
+      .get(`http://localhost:8000/user/slot/${filterDate}/null`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
@@ -125,7 +125,7 @@ export const Doctor = () => {
     // console.log(currentDiseaseId, selectedSlot);
     axios
       .patch(
-        `http://localhost:8000/doctor/confirm`,
+        `http://localhost:8000/user/confirm`,
         {
           id: currentDiseaseId,
           slot: selectedSlot,
@@ -171,7 +171,7 @@ export const Doctor = () => {
   const cancelDisease = (diseaseId, reason) => {
     axios
       .patch(
-        `http://localhost:8000/doctor/cancel`,
+        `http://localhost:8000/user/cancel`,
         {
           id: diseaseId,
           reason: reason,
@@ -209,7 +209,17 @@ export const Doctor = () => {
             type="date"
             id="filterDate"
             value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
+            onChange={(e) => {
+              const selectedDate = new Date(e.target.value);
+              if (selectedDate.getDay() === 0) {
+                toast.error(
+                  "Sunday is not selectable. Please choose another date."
+                );
+                e.target.value = filterDate; 
+              } else {
+                setFilterDate(e.target.value); 
+              }
+            }}
           />
         </label>
       </div>
@@ -222,6 +232,10 @@ export const Doctor = () => {
                 <p>Doctor: {disease.Doctor.name}</p>
                 <p>Patient: {disease.Patient.name}</p>
                 <p>Status: {disease.status}</p>
+                {status === "Cancelled" &&
+                  disease.CancellationReason?.reason && (
+                    <p>{disease.CancellationReason.reason}</p>
+                  )}
                 <p>
                   Appointment on:{" "}
                   {new Date(disease.appointment_date).toLocaleDateString(
@@ -276,7 +290,7 @@ export const Doctor = () => {
               <div className={styles.button}>
                 <p>
                   Booked on:{" "}
-                  {new Date(disease.updatedAt).toLocaleDateString("en-IN", {
+                  {new Date(disease.createdAt).toLocaleDateString("en-IN", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",

@@ -20,7 +20,7 @@ export const Nav_user = () => {
   return (
     <nav className={` ${styles.navbar}`}>
       <div className={styles.navbar_logo}>
-        <img src="logo.png" alt="logo" />
+        <img src={`http://localhost:3001/logo.png`} alt="logo" />
       </div>
       <div className={styles.heading}>
         <h1>Welcome</h1>

@@ -68,10 +68,48 @@ export const Login = (props) => {
               })
               .then(async (response) => {
                 setModalIsOpen(false);
-                const { token, role } = response.data;
+                const { token, role, data, verification } = response.data;
+                localStorage.setItem("token", token);
                 if (token) {
-                  localStorage.setItem("token", token);
-                  navigate(role === "doctor" ? "/doctor" : "/patient");
+                  if (role === "admin") {
+                    return navigate(`/admin`, {
+                      replace: true,
+                    });
+                  }
+                  if (role === "doctor") {
+                    if (!data) {
+                      // console.log("iam here");
+
+                      return navigate(`/user/data/${role}`, {
+                        replace: true,
+                      });
+                    }
+
+                    if (
+                      verification === "under process" ||
+                      verification === "rejected"
+                    ) {
+                      return navigate(`/doctor/verification/${verification}`, {
+                        replace: true,
+                      });
+                    }
+
+                    return navigate(`/doctor`, {
+                      replace: true,
+                    });
+                  }
+
+                  if (role === "patient") {
+                    if (!data) {
+                      console.log("iam here");
+                      return navigate(`/user/data/${role}`, {
+                        replace: true,
+                      });
+                    }
+                    return navigate(`/patient`, {
+                      replace: true,
+                    });
+                  }
                 }
               })
               .catch(async (error) => {
@@ -99,7 +137,20 @@ export const Login = (props) => {
                   }
                 } else {
                   if (error.response && error.response.status === 404) {
-                    toast.error("Invalid credentials");
+                    setModalIsOpen(false);
+                    if (
+                      error.response.data.message ===
+                      "No slot data found for the doctor."
+                    ) {
+                      toast.error(
+                        "No slot data found for the doctor. Redirecting to slot page."
+                      );
+                      setTimeout(() => {
+                        navigate(`/slot/${error.response.data.user_id}`);
+                      }, 3000);
+                    } else {
+                      toast.error("Invalid credentials");
+                    }
                   } else {
                     toast.error(
                       "An error occurred during login. Please try again."
@@ -107,6 +158,7 @@ export const Login = (props) => {
                   }
                 }
               })
+
               .finally(() => {
                 resetForm();
                 setSubmitting(false);
