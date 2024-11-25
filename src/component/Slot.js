@@ -3,6 +3,9 @@ import styles from "./slot.module.scss";
 import { jwtDecode } from "jwt-decode";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 const states = [
   "Andhra Pradesh",
   "Arunachal Pradesh",
@@ -41,6 +44,7 @@ const states = [
   "Puducherry",
 ];
 const DoctorForm = () => {
+  const navigate = useNavigate();
   return (
     <Formik
       initialValues={{
@@ -106,11 +110,35 @@ const DoctorForm = () => {
         license_number: Yup.string().required("License number is required"),
         specialization: Yup.string().required("Specialization is required"),
       })}
-      onSubmit={(values) => {
+      onSubmit={async (values, { setSubmitting, resetForm }) => {
         console.log(values);
+
+        try {
+          const response = await axios.post(
+            "http://localhost:8000/doctor/data",
+            values,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+          console.log("Response:", response.data);
+          toast.success("Form submitted successfully! Login again");
+          resetForm();
+          localStorage.removeItem("token");
+          setTimeout(() => {
+            navigate("/");
+          }, 3000);
+        } catch (error) {
+          console.error("Error:", error.response?.data || error.message);
+          toast.error("Error submitting the form. Please try again.");
+        } finally {
+          setSubmitting(false);
+        }
       }}
     >
-      {({ values, handleChange }) => (
+      {({ isSubmitting }) => (
         <Form>
           <div>
             <div>
@@ -283,7 +311,10 @@ const DoctorForm = () => {
             </div>
           </div>
 
-          <button type="submit">Submit</button>
+          <button type="submit">
+            {" "}
+            {isSubmitting ? "Submitting..." : "Submit"}
+          </button>
         </Form>
       )}
     </Formik>
@@ -291,6 +322,7 @@ const DoctorForm = () => {
 };
 
 const PatientForm = () => {
+  const navigate = useNavigate();
   return (
     <Formik
       initialValues={{
@@ -308,8 +340,31 @@ const PatientForm = () => {
           .min(0, "Age cannot be negative")
           .required("Age is required"),
       })}
-      onSubmit={(values) => {
+      onSubmit={async (values, { setSubmitting, resetForm }) => {
         console.log(values);
+        try {
+          const response = await axios.post(
+            "http://localhost:8000/patients/data",
+            values,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+          console.log("Response:", response.data);
+          toast.success("Form submitted successfully! Login again");
+          resetForm();
+          localStorage.removeItem("token");
+          setTimeout(() => {
+            navigate("/");
+          }, 3000);
+        } catch (error) {
+          console.error("Error:", error.response?.data || error.message);
+          toast.error("Error submitting the form. Please try again.");
+        } finally {
+          setSubmitting(false);
+        }
       }}
     >
       {() => (
@@ -322,21 +377,36 @@ const PatientForm = () => {
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </Field>
-            <ErrorMessage name="gender" />
+            <p>
+              <ErrorMessage name="gender" />
+            </p>
           </div>
 
           <div>
             <label>Location</label>
             <Field name="location.city" placeholder="City" />
-            <Field name="location.state" placeholder="State" />
-            <ErrorMessage name="location.city" />
-            <ErrorMessage name="location.state" />
+            <Field name="location.state" as="select">
+              <option value="">Select State</option>
+              {states.map((state, index) => (
+                <option key={index} value={state}>
+                  {state}
+                </option>
+              ))}
+            </Field>
+            <p>
+              <ErrorMessage name="location.city" />
+            </p>
+            <p>
+              <ErrorMessage name="location.state" />
+            </p>
           </div>
 
           <div>
             <label>Age</label>
             <Field name="age" type="number" />
-            <ErrorMessage name="age" />
+            <p>
+              <ErrorMessage name="age" />
+            </p>
           </div>
 
           <button type="submit">Submit</button>

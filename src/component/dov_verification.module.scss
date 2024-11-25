@@ -1,0 +1,28 @@
+.verificationstatus {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 81.5vh;
+
+  margin: auto;
+}
+
+.infomessage {
+  padding: 20px;
+  border: 5px solid #ccc;
+  border-radius: 8px;
+  text-align: center;
+  color: #2289cd;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.errormessage {
+padding: 20px;
+  border: 5px solid #ccc;
+  border-radius: 8px;
+  text-align: center;
+  color: #ff4d4f;
+  font-size: 2rem;
+  font-weight: 600;
+}

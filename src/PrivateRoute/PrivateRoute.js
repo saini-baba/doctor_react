@@ -28,9 +28,11 @@ export const PrivateRoute = ({ children, requiredRole }) => {
       }
 
       if (
-        decodedToken.verification === "under process" ||
-        decodedToken.verification === "rejected"
+        decodedToken.doc_verification === "under process" ||
+        decodedToken.doc_verification === "rejected"
       ) {
+        console.log("token" + decodedToken);
+
         return (
           <Navigate
             to={`/doctor/verification/${decodedToken.verification}`}

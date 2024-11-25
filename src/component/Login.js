@@ -68,7 +68,10 @@ export const Login = (props) => {
               })
               .then(async (response) => {
                 setModalIsOpen(false);
+
                 const { token, role, data, verification } = response.data;
+                console.log(data);
+
                 localStorage.setItem("token", token);
                 if (token) {
                   if (role === "admin") {
@@ -78,7 +81,7 @@ export const Login = (props) => {
                   }
                   if (role === "doctor") {
                     if (!data) {
-                      // console.log("iam here");
+                      console.log("iam here");
 
                       return navigate(`/user/data/${role}`, {
                         replace: true,
@@ -101,7 +104,7 @@ export const Login = (props) => {
 
                   if (role === "patient") {
                     if (!data) {
-                      console.log("iam here");
+                      // console.log("iam here");
                       return navigate(`/user/data/${role}`, {
                         replace: true,
                       });
