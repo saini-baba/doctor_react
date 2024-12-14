@@ -79,14 +79,26 @@ export const Patient = () => {
       <div className={styles.doc}>
         {doctors.length > 0 ? (
           doctors.map((doctor) => (
-            <div key={doctor.id}>
+            <div key={doctor.doctor_id}>
               <div>
                 <p>Name: {doctor.name}</p>
                 <p>Email: {doctor.email}</p>
+                <p>Fee: {doctor.fee}</p>
+                <p>Gender: {doctor.gender}</p>
+                <p>Age: {doctor.age}</p>
+                <p>Experience: {doctor.experience}</p>
+                <p>
+                  Location:{" "}
+                  {`${JSON.parse(doctor.location).city}, ${
+                    JSON.parse(doctor.location).state
+                  }`}
+                </p>
                 <p>Specialization: {doctor.specialization}</p>
-                <p>No. of Appointments left: {11 - doctor.confirmedCount}</p>
+                <p>No. of Appointments left: {doctor.availableSlots}</p>
               </div>
-              <button onClick={() => handleBooking(doctor.id, doctor.name)}>
+              <button
+                onClick={() => handleBooking(doctor.doctor_id, doctor.name)}
+              >
                 Book an Appointment
               </button>
             </div>

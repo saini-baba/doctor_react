@@ -3,7 +3,7 @@ import { Formik, Form, Field } from "formik";
 import style from "./appointment.module.scss";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import toast from "react-hot-toast";
+import toast from "react-hot-toast"; 
 
 export const Appointment = () => {
   const [imagePreviews, setImagePreviews] = useState([]);

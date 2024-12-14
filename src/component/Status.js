@@ -195,6 +195,11 @@ export const Status = () => {
                       Cancel
                     </button>
                   )}
+                  {disease.status === "Confirmed" && (
+                    <>
+                      <button className={styles.confirmButton}>Chat</button>
+                    </>
+                  )}
                   {disease.status === "Pending" && (
                     <>
                       <button

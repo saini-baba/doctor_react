@@ -9,6 +9,8 @@ import lgVideo from "lightgallery/plugins/video";
 import "lightgallery/css/lightgallery.css";
 import "lightgallery/css/lg-thumbnail.css";
 import "lightgallery/css/lg-zoom.css";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
 
 export const Doctor = () => {
   const [data, setData] = useState(null);
@@ -121,14 +123,15 @@ export const Doctor = () => {
     setSelectedSlot(currentSlot);
   };
 
-  const handleConfirmBooking = () => {
-    // console.log(currentDiseaseId, selectedSlot);
+  const handleConfirmBooking = (id, slot) => {
+    console.log("id:" + id, "slot:" + slot);
+
     axios
       .patch(
         `http://localhost:8000/user/confirm`,
         {
-          id: currentDiseaseId,
-          slot: selectedSlot,
+          id: id,
+          slot: slot,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -189,6 +192,37 @@ export const Doctor = () => {
         toast.error("Failed to cancel appointment");
       });
   };
+  const validationSchema = Yup.object({
+    prescription: Yup.string()
+      .required("Prescription is required")
+      .min(10, "Prescription should be at least 10 characters long"),
+    next_appointment_date: Yup.date().min(
+      new Date(),
+      "Date cannot be in the past"
+    ),
+  });
+  const handleSubmit = async (values, diseaseId) => {
+    console.log("Form values:", values);
+    console.log("Disease ID:", diseaseId);
+    try {
+      const response = await axios.patch(
+        "http://localhost:8000/doctor/complete",
+        {
+          prescription: values.prescription,
+          next_appointment_date: values.next_appointment_date,
+          id: diseaseId,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("Form submitted successfully:", response.data);
+      alert("Form submitted successfully!");
+    } catch (error) {
+      console.error("Error submitting the form:", error);
+      alert("Failed to submit the form. Please try again.");
+    }
+  };
 
   return (
     <div className={`container ${styles.doctorContainer}`}>
@@ -215,9 +249,9 @@ export const Doctor = () => {
                 toast.error(
                   "Sunday is not selectable. Please choose another date."
                 );
-                e.target.value = filterDate; 
+                e.target.value = filterDate;
               } else {
-                setFilterDate(e.target.value); 
+                setFilterDate(e.target.value);
               }
             }}
           />
@@ -258,6 +292,58 @@ export const Doctor = () => {
 
                 {disease.description && (
                   <p>Description: {disease.description}</p>
+                )}
+                {status === "Confirmed" && (
+                  <>
+                    <Formik
+                      initialValues={{
+                        prescription: "",
+                        next_appointment_date: "",
+                      }}
+                      validationSchema={validationSchema}
+                      onSubmit={(values) => handleSubmit(values, disease.id)}
+                    >
+                      {({ handleSubmit }) => (
+                        <>
+                          {/* Form Fields */}
+                          <Form id="prescriptionForm">
+                            <div>
+                              <label htmlFor="prescription">
+                                Prescription:
+                              </label>
+                              <Field
+                                as="textarea"
+                                id="prescription"
+                                name="prescription"
+                                rows="4"
+                                placeholder="Enter prescription details"
+                              />
+                              <ErrorMessage
+                                name="prescription"
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="next_appointment_date">
+                                Next Appointment Date:
+                              </label>
+                              <Field
+                                type="date"
+                                id="next_appointment_date"
+                                name="next_appointment_date"
+                              />
+                              <ErrorMessage
+                                name="next_appointment_date"
+                                component="div"
+                                className="error"
+                              />
+                            </div>
+                          </Form>
+                        </>
+                      )}
+                    </Formik>
+                  </>
                 )}
               </div>
 
@@ -303,55 +389,83 @@ export const Doctor = () => {
                     timeZone: "Asia/Kolkata",
                   })}
                 </p>
-                <div>
-                  {status === "Accepted" && (
-                    <>
-                      {edit[disease.id] ? (
-                        <>
-                          <select
-                            value={selectedSlot}
-                            onChange={(e) => setSelectedSlot(e.target.value)}
-                          >
-                            <option value="" disabled>
-                              Select a new slot
+                {status === "Confirmed" && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        document
+                          .getElementById("prescriptionForm")
+                          .dispatchEvent(
+                            new Event("submit", {
+                              cancelable: true,
+                              bubbles: true,
+                            })
+                          );
+                      }}
+                    >
+                      Submit
+                    </button>
+                  </>
+                )}
+
+                {status === "Accepted" && (
+                  <div>
+                    {edit[disease.id] ? (
+                      <>
+                        <select
+                          value={selectedSlot}
+                          onChange={(e) => setSelectedSlot(e.target.value)}
+                        >
+                          <option value="" disabled>
+                            Select a new slot
+                          </option>
+                          {slot.map((slotTime, index) => (
+                            <option key={index} value={slotTime}>
+                              {slotTime}
                             </option>
-                            {slot.map((slotTime, index) => (
-                              <option key={index} value={slotTime}>
-                                {slotTime}
-                              </option>
-                            ))}
-                          </select>
-                          <button onClick={handleConfirmBooking}>
-                            Confirm Booking
-                          </button>
-                          <button
-                            onClick={() => {
-                              handleCloseClick(disease.id);
-                            }}
-                          >
-                            Close
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() =>
-                              handleEditClick(disease.id, disease.slot_time)
-                            }
-                          >
-                            Edit Slot
-                          </button>
-                          <button onClick={handleConfirmBooking}>
-                            Confirm Booking
-                          </button>
-                          <button onClick={() => handleCancelClick(disease.id)}>
-                            Cancel
-                          </button>
-                        </>
-                      )}
-                    </>
-                  )}
-                </div>
+                          ))}
+                        </select>
+
+                        <button
+                          onClick={() =>
+                            handleConfirmBooking(disease.id, disease.slot_time)
+                          }
+                        >
+                          Confirm Booking
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleCloseClick(disease.id);
+                          }}
+                        >
+                          Close
+                        </button>
+                       
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() =>
+                            handleEditClick(disease.id, disease.slot_time)
+                          }
+                        >
+                          Edit Slot
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleConfirmBooking(disease.id, disease.slot_time)
+                          }
+                        >
+                          Confirm Booking
+                        </button>
+                        <button onClick={() => handleCancelClick(disease.id)}>
+                          Cancel
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))

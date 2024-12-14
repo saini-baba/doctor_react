@@ -4,7 +4,7 @@ import styles from "./nav_user.module.scss";
 
 export const Nav_user = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate(); // Initialize navigate function
+  const navigate = useNavigate(); 
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
